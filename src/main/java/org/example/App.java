@@ -11,7 +11,7 @@ public class App
     // various DB connection utilities global for easy access
     static String url = "jdbc:postgresql://localhost:5432/Student";
     static String user = "postgres";
-    static String password = "Samsonma123";
+    static String password = "Admin";
     static Connection connection;
 
     public static void main(String[] args) {
