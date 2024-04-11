@@ -39,43 +39,31 @@ public class App
                 // calls function display menu and to return user choice
                 userChoice = showMenu(in);
 
-                switch (userChoice){
-                    case 0:
-                        // exit case
-                        flag = false;
-                        break;
-                    case 1:
-                        // calls function to print all student records to the terminal
-                        getAllStudents();
-                        break;
-                    case 2:
-                        // prompts user to enter the nessessary values to add a student
-                        System.out.println("Enter first name, last name, email, and date:");
-                        fn = in.nextLine();
-                        ln = in.nextLine();
-                        email = in.nextLine();
-                        date = in.nextLine();
-                        // calls function to add student
-                        addStudent(fn,ln,email,date);
-                        break;
-                    case 3:
-                        // prompts user to enter the nessessary values to update email of student
-                        System.out.println("Enter student id, and email:");
-                        id = in.nextLine();
-                        email = in.nextLine();
-                        // calls function to update student email
-                        updateStudentEmail(id,email);
-                        break;
-                    case 4:
-                        // prompts user to enter the nessessary values to delete a student
-                        System.out.println("Enter student id:");
-                        id = in.nextLine();
-                        // calls a function to delete student
-                        deleteStudent(id);
-                        break;
-                    default:
-                        System.out.println("Error, userChoice undefined");
-                        break;
+                if (userChoice == 0) {// exit case
+                    flag = false;
+                } else if (userChoice == 1) {// calls function to print all student records to the terminal
+                    getAllStudents();
+                } else if (userChoice == 2) {// prompts user to enter the necessary values to add a student
+                    System.out.println("Enter first name, last name, email, and date:");
+                    fn = in.nextLine();
+                    ln = in.nextLine();
+                    email = in.nextLine();
+                    date = in.nextLine();
+                    // calls function to add student
+                    addStudent(fn, ln, email, date);
+                } else if (userChoice == 3) {// prompts user to enter the necessary values to update email of student
+                    System.out.println("Enter student id, and email:");
+                    id = in.nextLine();
+                    email = in.nextLine();
+                    // calls function to update student email
+                    updateStudentEmail(id, email);
+                } else if (userChoice == 4) {// prompts user to enter the necessary values to delete a student
+                    System.out.println("Enter student id:");
+                    id = in.nextLine();
+                    // calls a function to delete student
+                    deleteStudent(id);
+                } else {
+                    System.out.println("Error, userChoice undefined");
                 }
 
 
