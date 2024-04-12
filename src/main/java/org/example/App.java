@@ -569,7 +569,6 @@ public class App
             System.out.println(e.getMessage());
         }
     }
-    // EXTRA FUNCTIONALITY
     public static void viewAllProfiles(){
         try{
             Class.forName("org.postgresql.Driver");
@@ -595,7 +594,7 @@ public class App
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
-    }
+    } // EXTRA FUNCTIONALITY
     public static void viewMemberProfile(Scanner input){
         String first = " ";
         String last = " ";
