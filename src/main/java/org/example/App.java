@@ -9,14 +9,13 @@ import java.util.HashSet;
 
 public class App 
 {
-    // various DB connection utilities global for easy access
     static String url = "jdbc:postgresql://localhost:5432/Student";
     static String user = "postgres";
     static String password = "admin";
     static Connection connection;
+    static int memberID;
     static int trainerID;
     static int adminID;
-    static int memberID;
 
     public static void main(String[] args) {
         // initializes scanner to read user input
@@ -34,27 +33,16 @@ public class App
                 System.exit(1);
             }
             connection.close();
+            // calls function display menu
+            showMenu(in);
 
-            // do while loop prompts user for program function calls
-            boolean flag = true;
-            do{
-                int userChoice;
-                // calls function display menu and to return user choice
-                userChoice = showMenu(in);
-
-                if (userChoice == 0) { // exit case
-                    flag = false;
-                } else {
-                    System.out.println("Error, userChoice undefined");
-                }
-            }while (flag);
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
     }
-    public static int showMenu(Scanner input){
-        int ret = -1;
-        while (ret != 0) {
+    public static void showMenu(Scanner input){
+        int ret;
+        do {
             System.out.print("\n\nSelect your view:\n");
             System.out.println("(1) Member");
             System.out.println("(2) Trainer");
@@ -72,22 +60,17 @@ public class App
             }
 
             if (ret == 1) {
-                // enter member sign in page
                 memberCredScreen(input);
             } else if (ret == 2) {
-                // enter trainer sign in page
                 trainerCredScreen(input);
             } else{
-                // enter admin sign in page
                 adminCredScreen(input);
             }
-        }
-        // returns user choice
-        return ret;
+        } while (ret != 0);
     }
     public static void memberCredScreen(Scanner input){
-        int ret = -1;
-        while (ret != 0) {
+        int ret;
+        do {
             System.out.print("\n\nEnter Selection:\n");
             System.out.println("(1) Register");
             System.out.println("(2) Log In");
@@ -104,13 +87,11 @@ public class App
             }
 
             if (ret == 1) {
-                // enter register page
                 registerMember(input);
             } else {
-                // enter sign in page
                 memberView(input);
             }
-        }
+        }while (ret != 0);
     }
     public static void registerMember(Scanner input){
         String fn,ln,email,sex;
@@ -148,28 +129,26 @@ public class App
     }
     public static void memberView(Scanner input){
         String email = " ";
-        System.out.print("Enter email or type 'exit' to leave menu:");
-        email = input.nextLine();
-        System.out.println();
-
         HashSet<String> memberEmails = new HashSet<>();
+
         try{
-            // creates the connection to DB
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
-            // creates query statement and send request to DB
             Statement statement = connection.createStatement();
             statement.executeQuery("SELECT Email FROM Members;");
             ResultSet resultSet = statement.getResultSet();
-            // loop through results to print all students to terminal
             while(resultSet.next()){
                 memberEmails.add(resultSet.getString("Email"));
             }
-            // closes connection to DB
             connection.close();
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
+
+        // TODO: user login validation
+        System.out.print("Enter email or type 'exit' to leave menu:");
+        email = input.nextLine();
+        System.out.println();
 
         while (!memberEmails.contains(email) || !(email.equals("exit"))){
             if (email.equals("exit")){
@@ -182,18 +161,14 @@ public class App
         }
 
         try{
-            // creates the connection to DB
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
-            // creates query statement and send request to DB
             Statement statement = connection.createStatement();
             statement.executeQuery("SELECT MemberID FROM Members WHERE Email='" + email + "';");
             ResultSet resultSet = statement.getResultSet();
-            // loop through results to print all students to terminal
             while(resultSet.next()){
                 memberID = resultSet.getInt("MemberID");
             }
-            // closes connection to DB
             connection.close();
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -219,13 +194,13 @@ public class App
             }
 
             if (ret == 1) {
-                // enter profile management
+                // TODO: enter profile management
             } else if (ret == 2) {
-                // enter dashboard
+                // TODO: enter dashboard
             } else if (ret == 3){
-                // enter routines
+                // TODO: enter routines
             } else {
-                // enter classes
+                // TODO: enter classes
             }
         }
     }
@@ -248,10 +223,8 @@ public class App
             }
 
             if (ret == 1) {
-                // enter register page
                 registerTrainer(input);
             } else {
-                // enter sign in page
                 trainerView(input);
             }
         }
@@ -266,14 +239,12 @@ public class App
         System.out.println("Enter email:");
         email = input.nextLine();
         try{
-            // creates the connection to DB
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
-            // creates query statement and send request to DB
             Statement statement = connection.createStatement();
             statement.executeUpdate("INSERT INTO Trainers(FName, LName, Email) VALUES ('" +
                     fn + "', '" + ln + "', '" + email + "')");
-            // closes connection to DB
+            System.out.println("Registration Successful");
             connection.close();
         }catch (Exception e) {
             System.out.println(e.getMessage());
@@ -282,28 +253,26 @@ public class App
 
     public static void trainerView(Scanner input){
         String email = " ";
-        System.out.print("Enter email or type 'exit' to leave menu:");
-        email = input.nextLine();
-        System.out.println();
-
         HashSet<String> trainerEmails = new HashSet<>();
+
         try{
-            // creates the connection to DB
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
-            // creates query statement and send request to DB
             Statement statement = connection.createStatement();
             statement.executeQuery("SELECT Email FROM Members;");
             ResultSet resultSet = statement.getResultSet();
-            // loop through results to print all students to terminal
             while(resultSet.next()){
                 trainerEmails.add(resultSet.getString("Email"));
             }
-            // closes connection to DB
             connection.close();
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
+
+        // TODO: user login validation
+        System.out.print("Enter email or type 'exit' to leave menu:");
+        email = input.nextLine();
+        System.out.println();
 
         while (!trainerEmails.contains(email) || !(email.equals("exit"))){
             if (email.equals("exit")){
@@ -316,18 +285,14 @@ public class App
         }
 
         try{
-            // creates the connection to DB
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
-            // creates query statement and send request to DB
             Statement statement = connection.createStatement();
             statement.executeQuery("SELECT TrainerID FROM Trainers WHERE Email='" + email + "';");
             ResultSet resultSet = statement.getResultSet();
-            // loop through results to print all students to terminal
             while(resultSet.next()){
                 trainerID = resultSet.getInt("TrainerID");
             }
-            // closes connection to DB
             connection.close();
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -338,7 +303,7 @@ public class App
             System.out.print("\n\nSelect option:\n");
             System.out.println("(1) Manage Schedule");
             System.out.println("(2) Member Profile Viewing");
-            System.out.println("(2) View All Members");
+            System.out.println("(2) View All Members");  // TODO: extra function
             System.out.println("(0) EXIT");
             System.out.println("Enter Your Selection: ");
             ret = input.nextInt();
@@ -352,40 +317,36 @@ public class App
             }
 
             if (ret == 1) {
-                // enter schedule management
+                // TODO: enter schedule management
             } else if (ret == 2){
-                // enter profile viewing
                 viewMemberProfile(input);
             } else {
-                // enter viewAllProfiles
                 viewAllProfiles();
             }
         }
     }
 
+    // TODO: Extra functionality
     public static void viewAllProfiles(){
         try{
-            // creates the connection to DB
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
-            // creates query statement and send request to DB
             Statement statement = connection.createStatement();
             statement.executeQuery("SELECT * FROM Members WHERE MemberID IN (SELECT MemberID FROM Takes WHERE TrainerID="+trainerID+");");
             ResultSet resultSet = statement.getResultSet();
-
+            System.out.println("Displaying all members taking your courses:");
             while(resultSet.next()){
-                System.out.println(resultSet.getInt("MemberID"));
-                System.out.println(resultSet.getString("FName"));
-                System.out.println(resultSet.getString("LName"));
-                System.out.println(resultSet.getString("Email"));
-                System.out.println(resultSet.getInt("GoalWeightKGs"));
-                System.out.println(resultSet.getString("GoalDeadline"));
-                System.out.println(resultSet.getInt("HeightCM"));
-                System.out.println(resultSet.getInt("WeightKGs"));
-                System.out.println(resultSet.getInt("Age"));
+                System.out.print(resultSet.getInt("MemberID") + "\t");
+                System.out.print(resultSet.getString("FName") + "\t");
+                System.out.print(resultSet.getString("LName") + "\t");
+                System.out.print(resultSet.getString("Email") + "\t");
+                System.out.print(resultSet.getInt("GoalWeightKGs") + "\t");
+                System.out.print(resultSet.getString("GoalDeadline") + "\t");
+                System.out.print(resultSet.getInt("HeightCM") + "\t");
+                System.out.print(resultSet.getInt("WeightKGs") + "\t");
+                System.out.print(resultSet.getInt("Age") + "\t");
                 System.out.println(resultSet.getString("Sex"));
             }
-            // closes connection to DB
             connection.close();
 
         }catch (Exception e){
@@ -403,37 +364,39 @@ public class App
         System.out.println();
 
         try{
-            // creates the connection to DB
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
-            // creates query statement and send request to DB
             Statement statement = connection.createStatement();
             statement.executeQuery("SELECT * FROM Members WHERE FName='" + first + "' AND LName='" + last + "';");
             ResultSet resultSet = statement.getResultSet();
 
             while(resultSet.next()){
-                System.out.println(resultSet.getInt("MemberID"));
-                System.out.println(resultSet.getString("FName"));
-                System.out.println(resultSet.getString("LName"));
-                System.out.println(resultSet.getString("Email"));
-                System.out.println(resultSet.getInt("GoalWeightKGs"));
-                System.out.println(resultSet.getString("GoalDeadline"));
-                System.out.println(resultSet.getInt("HeightCM"));
-                System.out.println(resultSet.getInt("WeightKGs"));
-                System.out.println(resultSet.getInt("Age"));
+                System.out.print(resultSet.getInt("MemberID") + "\t");
+                System.out.print(resultSet.getString("FName") + "\t");
+                System.out.print(resultSet.getString("LName") + "\t");
+                System.out.print(resultSet.getString("Email") + "\t");
+                System.out.print(resultSet.getInt("GoalWeightKGs") + "\t");
+                System.out.print(resultSet.getString("GoalDeadline") + "\t");
+                System.out.print(resultSet.getInt("HeightCM") + "\t");
+                System.out.print(resultSet.getInt("WeightKGs") + "\t");
+                System.out.print(resultSet.getInt("Age")+ "\t");
                 System.out.println(resultSet.getString("Sex"));
             }
-            // closes connection to DB
             connection.close();
 
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
     }
+
+    //TODO: admin screen
     public static void adminCredScreen(Scanner input){
 
     }
-    // old functions
+
+}
+
+
 //    public static void getAllStudents(){
 //        try{
 //            // creates the connection to DB
@@ -503,4 +466,3 @@ public class App
 //            System.out.println(e.getMessage());
 //        }
 //    }
-}
