@@ -393,31 +393,134 @@ public class App
         } while (ret != 0);
 
     }
-    // TODO: routines
     public static void memberManageClasses(Scanner input) {
         int ret;
         do {
             System.out.print("\n\nSelect option:\n");
-            System.out.println("(1) Profile Management");
-            System.out.println("(2) View Dashboard");
-            System.out.println("(3) Manage Routines");
-            System.out.println("(4) Manage Classes");
+            System.out.println("(1) Schedule a Class");
+            System.out.println("(2) Cancel a Class");
+
             System.out.println("(0) EXIT");
             System.out.println("Enter Your Selection: ");
             ret = input.nextInt();
             input.nextLine();
             if (ret == 0) break;
 
-            while (ret < 0 || ret > 4) {
+            while (ret < 0 || ret > 2) {
                 System.out.println("Selection out of range. Try again: ");
                 input.nextLine();
                 ret = input.nextInt();
             }
 
+            if (ret == 1){
+                // display available classes
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
 
+                    // prints available classes
+                    statement.executeQuery("SELECT ClassID, ClassType, ClassDescription, StartTime, EndTime FROM Classes WHERE Available=True;");
+                    ResultSet resultSet = statement.getResultSet();
+
+                    System.out.println("Available Classes: ");
+                    System.out.println("Class ID --|-- Class Type --|-- Description --|-- Start Time --|-- End Time");
+                    while (resultSet.next()){
+                        System.out.print(resultSet.getInt("ClassID") + "\t");
+                        System.out.print(resultSet.getString("ClassType") + "\t");
+                        System.out.print(resultSet.getString("ClassDescription") + "\t");
+                        System.out.print(resultSet.getString("StartTime") + "\t");
+                        System.out.println(resultSet.getString("EndTime"));
+                    }
+                    int id;
+                    System.out.println("Enter Selection through class ID:");
+                    id = input.nextInt();
+                    input.nextLine();
+
+                    // check if type is personal
+                    String type = "";
+                    statement.executeQuery("SELECT ClassType FROM Classes WHERE ClassID=" + id + ";");
+                    resultSet = statement.getResultSet();
+                    while (resultSet.next()){
+                        type = resultSet.getString("ClassType");
+                    }
+
+                    if (type.equals("Personal")){
+                        statement.executeUpdate("UPDATE Classes SET Available=False WHERE ClassID=" + id + ";");
+                    }
+                    // update takes table
+                    statement.executeUpdate("INSERT INTO Takes (MemberID, ClassID) VALUES (" + memberID + ", " + id + ");");
+
+                    // adds to billing
+                    int amount = 150;
+                    statement.executeQuery("SELECT AmountDue FROM Billings WHERE MemberID=" + memberID + ";");
+                    while (resultSet.next()) {
+                        amount = resultSet.getInt("AmountDue");
+                    }
+                    statement.executeUpdate("UPDATE Billings SET AmountDue= "+ (amount + 100) + ";");
+
+                    System.out.println("Sign Up Successful");
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
+            else if (ret == 2){
+                // display taken classes from takes table
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    // prints available classes for deletion
+                    statement.executeQuery("SELECT ClassID, ClassType, ClassDescription, StartTime, EndTime FROM Classes " +
+                            "WHERE ClassID IN (SELECT ClassID FROM Takes WHERE MemberID="+ memberID + ");");
+                    ResultSet resultSet = statement.getResultSet();
+
+                    System.out.println("Available Classes: ");
+                    System.out.println("Class ID --|-- Class Type --|-- Description --|-- Start Time --|-- End Time");
+                    while (resultSet.next()){
+                        System.out.print(resultSet.getInt("ClassID") + "\t");
+                        System.out.print(resultSet.getString("ClassType") + "\t");
+                        System.out.print(resultSet.getString("ClassDescription") + "\t");
+                        System.out.print(resultSet.getString("StartTime") + "\t");
+                        System.out.println(resultSet.getString("EndTime"));
+                    }
+                    int id;
+                    System.out.println("Enter Selection through class ID:");
+                    id = input.nextInt();
+                    input.nextLine();
+
+                    // check if type is personal
+                    String type = "";
+                    statement.executeQuery("SELECT ClassType FROM Classes WHERE ClassID=" + id + ";");
+                    resultSet = statement.getResultSet();
+                    while (resultSet.next()){
+                        type = resultSet.getString("ClassType");
+                    }
+
+                    if (type.equals("Personal")){
+                        statement.executeUpdate("UPDATE Classes SET Available=True WHERE ClassID=" + id + ";");
+                    }
+
+                    statement.executeUpdate("DELETE FROM Takes WHERE MemberID=" + memberID + " AND ClassID=" + id + ";");
+
+                    // subtract from billing
+                    int amount = 150;
+                    statement.executeQuery("SELECT AmountDue FROM Billings WHERE MemberID=" + memberID + ";");
+                    while (resultSet.next()) {
+                        amount = resultSet.getInt("AmountDue");
+                    }
+                    statement.executeUpdate("UPDATE Billings SET AmountDue= "+ (amount - 100) + ";");
+
+                    System.out.println("Remove Successful");
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
         } while (ret != 0);
     }
-
 
     // _______________TRAINER FUNCTIONS_______________________________
     public static void trainerCredScreen(Scanner input){
@@ -631,9 +734,38 @@ public class App
         }
     }
 
-
     // ______________ADMIN FUNCTIONS__________________________________
+    public static void adminCredScreen(Scanner input){
+        int ret = -1;
+        while (ret != 0) {
+            System.out.print("\n\nEnter Selection:\n");
+            System.out.println("(1) Register");
+            System.out.println("(2) Log In");
+            System.out.println("(0) EXIT");
+            System.out.println("Enter Your Selection: ");
+            ret = input.nextInt();
+            input.nextLine();
+            if (ret == 0) break;
+
+            while (ret < 0 || ret > 2) {
+                System.out.println("Selection out of range. Try again: ");
+                input.nextLine();
+                ret = input.nextInt();
+            }
+
+            if (ret == 1) {
+                registerAdmin(input);
+            } else {
+                adminView(input);
+            }
+        }
+    }
     //TODO: admin functions
-    public static void adminCredScreen(Scanner input){}
+    public static void registerAdmin(Scanner input){
+
+    }
+    public static void adminView(Scanner input){
+
+    }
 
 }
