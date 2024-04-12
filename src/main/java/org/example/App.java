@@ -250,7 +250,6 @@ public class App
             System.out.println(e.getMessage());
         }
     }
-
     public static void trainerView(Scanner input){
         String email = " ";
         HashSet<String> trainerEmails = new HashSet<>();
@@ -317,12 +316,30 @@ public class App
             }
 
             if (ret == 1) {
-                // TODO: enter schedule management
+                manageTrainerSchedule(input);
             } else if (ret == 2){
                 viewMemberProfile(input);
             } else {
                 viewAllProfiles();
             }
+        }
+    }
+    public static void manageTrainerSchedule(Scanner input){
+        String start,end;
+        System.out.println("Enter Shift Start Time (HH-MM):");
+        start = input.nextLine();
+        System.out.println("Enter Shift End Time (HH-MM):");
+        end = input.nextLine();
+
+        try{
+            Class.forName("org.postgresql.Driver");
+            connection = DriverManager.getConnection(url, user, password);
+            Statement statement = connection.createStatement();
+            statement.executeUpdate("");
+            System.out.println("Update Successful");
+            connection.close();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -395,74 +412,3 @@ public class App
     }
 
 }
-
-
-//    public static void getAllStudents(){
-//        try{
-//            // creates the connection to DB
-//            Class.forName("org.postgresql.Driver");
-//            connection = DriverManager.getConnection(url, user, password);
-//            // creates query statement and send request to DB
-//            Statement statement = connection.createStatement();
-//            statement.executeQuery("SELECT * FROM students");
-//            ResultSet resultSet = statement.getResultSet();
-//            // loop through results to print all students to terminal
-//            while(resultSet.next()){
-//                System.out.print(resultSet.getInt("student_id") + "\t");
-//                System.out.print(resultSet.getString("first_name") + "\t" );
-//                System.out.print(resultSet.getString("last_name") + "\t");
-//                System.out.print(resultSet.getString("email") + "\t");
-//                System.out.println(resultSet.getString("enrollment_date"));
-//            }
-//            // closes connection to DB
-//            connection.close();
-//
-//        }catch (Exception e){
-//            System.out.println(e.getMessage());
-//        }
-//    }
-//    public static void addStudent(String first, String last, String email, String date){
-//        try{
-//            // creates the connection to DB
-//            Class.forName("org.postgresql.Driver");
-//            connection = DriverManager.getConnection(url, user, password);
-//            // creates query statement and send request to DB
-//            Statement statement = connection.createStatement();
-//            statement.executeUpdate("INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES ('" +
-//                    first + "', '" + last + "', '" + email + "', '" + date +"')" );
-//            // closes connection to DB
-//            connection.close();
-//
-//        }catch (Exception e){
-//            System.out.println(e.getMessage());
-//        }
-//    }
-//    public static void deleteStudent(String id){
-//        try{
-//            // creates the connection to DB
-//            Class.forName("org.postgresql.Driver");
-//            connection = DriverManager.getConnection(url, user, password);
-//            // creates query statement and send request to DB
-//            Statement statement = connection.createStatement();
-//            statement.executeUpdate("DELETE FROM students WHERE student_id = " + id );
-//            // closes connection to DB
-//            connection.close();
-//
-//        }catch (Exception e){
-//            System.out.println(e.getMessage());
-//        }
-//    }
-//    public static void updateStudentEmail(String id, String email){
-//        try{
-//            // creates the connection to DB
-//            Class.forName("org.postgresql.Driver");
-//            connection = DriverManager.getConnection(url, user, password);
-//            Statement statement = connection.createStatement();
-//            statement.executeUpdate("UPDATE students SET email = '" + email + "' WHERE student_id = " + id );
-//            // closes connection to DB
-//            connection.close();
-//
-//        }catch (Exception e){
-//            System.out.println(e.getMessage());
-//        }
-//    }
