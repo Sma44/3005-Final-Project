@@ -16,7 +16,6 @@ public class App
     static int memberID;
     static int trainerID;
     static int adminID;
-
     public static void main(String[] args) {
         // initializes scanner to read user input
         Scanner in = new Scanner(System.in);
@@ -33,12 +32,14 @@ public class App
                 System.exit(1);
             }
             connection.close();
-            // calls function display menu
-            showMenu(in);
-
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
+        // calls function display menu
+        showMenu(in);
+
+        //close the scanner
+        in.close();
     }
     public static void showMenu(Scanner input){
         int ret;
@@ -63,11 +64,13 @@ public class App
                 memberCredScreen(input);
             } else if (ret == 2) {
                 trainerCredScreen(input);
-            } else{
+            } else if (ret == 3){
                 adminCredScreen(input);
             }
         } while (ret != 0);
     }
+
+    // _________________MEMBER FUNCTIONS_____________________________
     public static void memberCredScreen(Scanner input){
         int ret;
         do {
@@ -88,7 +91,7 @@ public class App
 
             if (ret == 1) {
                 registerMember(input);
-            } else {
+            } else if (ret == 2){
                 memberView(input);
             }
         }while (ret != 0);
@@ -113,15 +116,24 @@ public class App
         System.out.println("Enter age:");
         age = input.nextInt();
         input.nextLine();
+
         try{
-            // creates the connection to DB
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
-            // creates query statement and send request to DB
             Statement statement = connection.createStatement();
+            // adds entry to members table
             statement.executeUpdate("INSERT INTO Members(FName, LName, Email, GoalWeightKGs, GoalDeadline, HeightCM, WeightKGs, Age, Sex) VALUES ('" +
                     fn + "', '" + ln + "', '" + email + "', 100, '2000-01-01', " + height + ", " + weight + ", " + age + ", '" + sex + "');");
-            // closes connection to DB
+            // gets memberID
+            statement.executeQuery("SELECT MemberID FROM Members WHERE Email='"+ email + "';");
+            ResultSet resultset = statement.getResultSet();
+            while (resultset.next()){
+                memberID = resultset.getInt("MemberID");
+            }
+            // creates entry for billing
+            statement.executeUpdate("INSERT INTO Billings(MemberID, AmountDue) VALUES (" + memberID + ", 150);");
+
+            System.out.println("Registration Successful");
             connection.close();
         }catch (Exception e) {
             System.out.println(e.getMessage());
@@ -145,7 +157,6 @@ public class App
             System.out.println(e.getMessage());
         }
 
-        // TODO: user login validation
         System.out.print("Enter email or type 'exit' to leave menu:");
         email = input.nextLine();
         System.out.println();
@@ -174,8 +185,8 @@ public class App
             System.out.println(e.getMessage());
         }
 
-        int ret = -1;
-        while (ret != 0) {
+        int ret;
+        do {
             System.out.print("\n\nSelect option:\n");
             System.out.println("(1) Profile Management");
             System.out.println("(2) View Dashboard");
@@ -194,16 +205,142 @@ public class App
             }
 
             if (ret == 1) {
-                // TODO: enter profile management
+                memberProfileManagement(input);
             } else if (ret == 2) {
-                // TODO: enter dashboard
+                memberDashboard();
             } else if (ret == 3){
-                // TODO: enter routines
-            } else {
-                // TODO: enter classes
+                memberManageRoutines(input);
+            } else if (ret == 4) {
+                memberManageClasses(input);
             }
+        } while (ret != 0);
+    }
+    public static void memberProfileManagement(Scanner input){
+        int ret;
+        do {
+            System.out.print("\n\nSelect option:\n");
+            System.out.println("(1) Update Personal Information/Health Metrics");
+            System.out.println("(2) Update Fitness Goals");
+            System.out.println("(0) EXIT");
+            System.out.println("Enter Your Selection: ");
+            ret = input.nextInt();
+            input.nextLine();
+            if (ret == 0) break;
+
+            while (ret < 0 || ret > 2) {
+                System.out.println("Selection out of range. Try again: ");
+                input.nextLine();
+                ret = input.nextInt();
+            }
+
+            if (ret == 1){
+                int age,weight,height;
+                System.out.print("Enter New Age: ");
+                age = input.nextInt();
+                input.nextLine();
+                System.out.print("\nEnter New Weight in KGs: ");
+                weight = input.nextInt();
+                input.nextLine();
+                System.out.print("\nEnter New Height in CMs: ");
+                height = input.nextInt();
+                input.nextLine();
+
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    statement.executeUpdate("UPDATE Members SET Age="+ age +" WHERE MemberID="+memberID+";");
+                    statement.executeUpdate("UPDATE Members SET WeightKGs="+ weight +" WHERE MemberID="+memberID+";");
+                    statement.executeUpdate("UPDATE Members SET Height="+ height +" WHERE MemberID="+memberID+";");
+                    System.out.println("Update successful");
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
+            else if (ret == 2){
+                int goalWeight;
+                String goalDeadline;
+                System.out.print("\nEnter New Goal Weight in KGs: ");
+                goalWeight = input.nextInt();
+                input.nextLine();
+                System.out.print("Enter New Goal Deadline (Format: YYYY-MM-DD): ");
+                goalDeadline = input.nextLine();
+
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    statement.executeUpdate("UPDATE Members SET GoalWeightKGs="+ goalWeight +" WHERE MemberID="+memberID+";");
+                    statement.executeUpdate("UPDATE Members SET GoalDeadline='"+ goalDeadline +"' WHERE MemberID="+memberID+";");
+                    System.out.println("Update successful");
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
+        } while (ret != 0);
+    }
+    public static void memberDashboard(){
+        int height;
+        int weight = 0;
+        int goalWeight = 1;
+        try{
+            Class.forName("org.postgresql.Driver");
+            connection = DriverManager.getConnection(url, user, password);
+            Statement statement = connection.createStatement();
+
+            statement.executeQuery("SELECT RoutineDescription, DurationMins FROM Routines WHERE MemberID=" + memberID + ";");
+            ResultSet resultSet = statement.getResultSet();
+            System.out.println("Routines: ");
+            System.out.println("Description --|-- Duration (Minutes)");
+            while(resultSet.next()){
+                System.out.print(resultSet.getInt("RoutineDescription") + "\t");
+                System.out.println(resultSet.getInt("DurationMins"));
+            }
+
+            statement.executeQuery("SELECT FName, LName, GoalWeightKGs, GoalDeadline, HeightCM, WeightKGs, Age, Sex FROM Members WHERE MemberID="
+                    + memberID + ";");
+            resultSet = statement.getResultSet();
+            System.out.println("Health Statistics:");
+            System.out.println("First Name --|-- Last Name --|-- Goal Weight --|-- Goal Deadline --|-- Height --|-- Weight --|-- Age --|-- Sex --|-- BMI");
+            while(resultSet.next()){
+                System.out.print(resultSet.getString("FName") + "\t");
+                System.out.print(resultSet.getString("LName") + "\t");
+                goalWeight = resultSet.getInt("GoalWeightKGs");
+                System.out.print(goalWeight + "\t");
+                System.out.print(resultSet.getString("GoalDeadline") + "\t");
+                height = resultSet.getInt("heightCM");
+                System.out.print(height + "\t");
+                weight = resultSet.getInt("WeightKGs");
+                System.out.print(weight + "\t");
+                System.out.print(resultSet.getInt("Age") + "\t");
+                System.out.print(resultSet.getString("Sex") + "\t");
+                System.out.println(weight / (height * height));
+            }
+
+            System.out.println("Fitness Achievements:");
+            if (goalWeight == weight){
+                System.out.println("Weight Milestone Reached: " + weight + "KGs");
+            }
+
+            connection.close();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
+
+    // TODO: these two member functions
+    public static void memberManageRoutines(Scanner input){
+
+
+    }
+    public static void memberManageClasses(Scanner input) {}
+
+
+    // _______________TRAINER FUNCTIONS_______________________________
     public static void trainerCredScreen(Scanner input){
         int ret = -1;
         while (ret != 0) {
@@ -230,20 +367,31 @@ public class App
         }
     }
     public static void registerTrainer(Scanner input){
-        String fn,ln,email,sex;
-        int height,weight,age;
+        String fn,ln,email;
         System.out.println("Enter first name:");
         fn = input.nextLine();
         System.out.println("Enter last name:");
         ln = input.nextLine();
         System.out.println("Enter email:");
         email = input.nextLine();
+
         try{
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
             Statement statement = connection.createStatement();
+            // adds trainer to table
             statement.executeUpdate("INSERT INTO Trainers(FName, LName, Email) VALUES ('" +
-                    fn + "', '" + ln + "', '" + email + "')");
+                    fn + "', '" + ln + "', '" + email + "');");
+            // gets trainer id
+            statement.executeQuery("SELECT TrainerID FROM Trainers WHERE Email='" + email + "';");
+            ResultSet resultSet = statement.getResultSet();
+            while(resultSet.next()){
+                trainerID = resultSet.getInt("TrainerID");
+            }
+            // creates availability entry in table
+            statement.executeUpdate("INSERT INTO TrainerAvailability (TrainerID,StartTime,EndTime) VALUES (" + trainerID +
+                    ", '00:00', '23:59') WHERE TrainerID="+ trainerID +";");
+
             System.out.println("Registration Successful");
             connection.close();
         }catch (Exception e) {
@@ -268,7 +416,6 @@ public class App
             System.out.println(e.getMessage());
         }
 
-        // TODO: user login validation
         System.out.print("Enter email or type 'exit' to leave menu:");
         email = input.nextLine();
         System.out.println();
@@ -297,19 +444,19 @@ public class App
             System.out.println(e.getMessage());
         }
 
-        int ret = -1;
-        while (ret != 0) {
+        int ret;
+        do {
             System.out.print("\n\nSelect option:\n");
             System.out.println("(1) Manage Schedule");
             System.out.println("(2) Member Profile Viewing");
-            System.out.println("(2) View All Members");  // TODO: extra function
+            System.out.println("(3) View All Members"); // EXTRA FUNCTION
             System.out.println("(0) EXIT");
             System.out.println("Enter Your Selection: ");
             ret = input.nextInt();
             input.nextLine();
             if (ret == 0) break;
 
-            while (ret < 0 || ret > 2) {
+            while (ret < 0 || ret > 3) {
                 System.out.println("Selection out of range. Try again: ");
                 input.nextLine();
                 ret = input.nextInt();
@@ -322,28 +469,28 @@ public class App
             } else {
                 viewAllProfiles();
             }
-        }
+        } while (ret != 0);
     }
     public static void manageTrainerSchedule(Scanner input){
         String start,end;
-        System.out.println("Enter Shift Start Time (HH-MM):");
+        System.out.println("Enter New Shift Start Time (HH:MM):");
         start = input.nextLine();
-        System.out.println("Enter Shift End Time (HH-MM):");
+        System.out.println("Enter New Shift End Time (HH:MM):");
         end = input.nextLine();
 
         try{
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
             Statement statement = connection.createStatement();
-            statement.executeUpdate("");
+            statement.executeUpdate("UPDATE TrainerAvailability SET StartTime='" + start + "' WHERE TrainerID="+ trainerID +";");
+            statement.executeUpdate("UPDATE TrainerAvailability SET EndTime='" + end + "' WHERE TrainerID="+ trainerID +";");
             System.out.println("Update Successful");
             connection.close();
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
-
-    // TODO: Extra functionality
+    // EXTRA FUNCTIONALITY
     public static void viewAllProfiles(){
         try{
             Class.forName("org.postgresql.Driver");
@@ -406,9 +553,9 @@ public class App
         }
     }
 
-    //TODO: admin screen
-    public static void adminCredScreen(Scanner input){
 
-    }
+    // ______________ADMIN FUNCTIONS__________________________________
+    //TODO: admin functions
+    public static void adminCredScreen(Scanner input){}
 
 }
