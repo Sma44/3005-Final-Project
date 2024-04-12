@@ -331,13 +331,92 @@ public class App
             System.out.println(e.getMessage());
         }
     }
-
-    // TODO: these two member functions
     public static void memberManageRoutines(Scanner input){
+        int ret;
+        do {
+            System.out.print("\n\nSelect option:\n");
+            System.out.println("(1) Add Routine");
+            System.out.println("(2) Delete Routine");
+            System.out.println("Enter Your Selection: ");
+            ret = input.nextInt();
+            input.nextLine();
+            if (ret == 0) break;
 
+            while (ret < 0 || ret > 2) {
+                System.out.println("Selection out of range. Try again: ");
+                input.nextLine();
+                ret = input.nextInt();
+            }
+
+            int duration, routineID;
+            String description;
+            if(ret == 1){
+                System.out.println("Enter Routine Description: ");
+                duration = input.nextInt();
+                input.nextLine();
+                System.out.println("Enter Routine Duration: ");
+                description = input.nextLine();
+
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    statement.executeUpdate("INSERT INTO Routines (MemberID, RoutineDescription, DurationMins) VALUES ("
+                            + memberID + ", '" + description + "', " + duration + ");");
+
+                    System.out.println("Insertion Successful");
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
+            if (ret == 2){
+                System.out.println("Enter Routine ID: ");
+                routineID = input.nextInt();
+                input.nextLine();
+
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    statement.executeUpdate("DELETE FROM Routines WHERE RoutineID=" + routineID + ";");
+
+                    System.out.println("Deletion Successful");
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
+
+        } while (ret != 0);
 
     }
-    public static void memberManageClasses(Scanner input) {}
+    // TODO: routines
+    public static void memberManageClasses(Scanner input) {
+        int ret;
+        do {
+            System.out.print("\n\nSelect option:\n");
+            System.out.println("(1) Profile Management");
+            System.out.println("(2) View Dashboard");
+            System.out.println("(3) Manage Routines");
+            System.out.println("(4) Manage Classes");
+            System.out.println("(0) EXIT");
+            System.out.println("Enter Your Selection: ");
+            ret = input.nextInt();
+            input.nextLine();
+            if (ret == 0) break;
+
+            while (ret < 0 || ret > 4) {
+                System.out.println("Selection out of range. Try again: ");
+                input.nextLine();
+                ret = input.nextInt();
+            }
+
+
+        } while (ret != 0);
+    }
 
 
     // _______________TRAINER FUNCTIONS_______________________________
