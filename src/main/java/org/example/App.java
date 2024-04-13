@@ -70,7 +70,7 @@ public class App
         } while (ret != 0);
     }
 
-    // _________________MEMBER USER FUNCTIONS_____________________________ // TODO: add order by statement to queries
+    // _________________MEMBER USER FUNCTIONS_____________________________
     public static void memberCredScreen(Scanner input){
         int ret;
         do {
@@ -295,7 +295,7 @@ public class App
             connection = DriverManager.getConnection(url, user, password);
             Statement statement = connection.createStatement();
 
-            statement.executeQuery("SELECT RoutineDescription, DurationMins FROM Routines WHERE MemberID=" + memberID + ";");
+            statement.executeQuery("SELECT RoutineDescription, DurationMins FROM Routines WHERE MemberID=" + memberID + " ORDER BY RoutineID DESC;");
             ResultSet resultSet = statement.getResultSet();
             System.out.println("Routines: ");
             System.out.println("Description --|-- Duration (Minutes)");
@@ -428,14 +428,14 @@ public class App
             System.out.print("\n\nSelect option:\n");
             System.out.println("(1) Schedule a Class");
             System.out.println("(2) Cancel a Class");
-
+            System.out.println("(3) View Classes");
             System.out.println("(0) EXIT");
             System.out.println("Enter Your Selection: ");
             ret = input.nextInt();
             input.nextLine();
             if (ret == 0) break;
 
-            while (ret < 0 || ret > 2) {
+            while (ret < 0 || ret > 3) {
                 System.out.println("Selection out of range. Try again: ");
                 input.nextLine();
                 ret = input.nextInt();
@@ -449,7 +449,7 @@ public class App
                     Statement statement = connection.createStatement();
 
                     // prints available classes
-                    statement.executeQuery("SELECT ClassID, ClassType, ClassDescription, StartTime, EndTime FROM Classes WHERE Available=True;");
+                    statement.executeQuery("SELECT ClassID, ClassType, ClassDescription, StartTime, EndTime FROM Classes WHERE Available=True ORDER BY ClassID DESC;");
                     ResultSet resultSet = statement.getResultSet();
 
                     System.out.println("Available Classes: ");
@@ -483,10 +483,14 @@ public class App
                     // adds to billing
                     int amount = 250;
                     statement.executeQuery("SELECT AmountDue FROM Billings WHERE MemberID=" + memberID + ";");
+                    resultSet = statement.getResultSet();
                     while (resultSet.next()) {
                         amount = resultSet.getInt("AmountDue");
                     }
-                    statement.executeUpdate("UPDATE Billings SET AmountDue= "+ (amount + 100) + " WHERE MemberID=" + memberID + ";");
+                    // increases billing cost
+                    amount+=100;
+                    System.out.println("After:"+ amount);
+                    statement.executeUpdate("UPDATE Billings SET AmountDue="+ amount + " WHERE MemberID=" + memberID + ";");
 
                     System.out.println("Sign Up Successful");
                     connection.close();
@@ -503,7 +507,7 @@ public class App
 
                     // prints available classes for deletion
                     statement.executeQuery("SELECT ClassID, ClassType, ClassDescription, StartTime, EndTime FROM Classes " +
-                            "WHERE ClassID IN (SELECT ClassID FROM Takes WHERE MemberID="+ memberID + ");");
+                            "WHERE ClassID IN (SELECT ClassID FROM Takes WHERE MemberID="+ memberID + ") ORDER BY ClassID DESC;");
                     ResultSet resultSet = statement.getResultSet();
 
                     System.out.println("Available Classes: ");
@@ -537,6 +541,7 @@ public class App
                     // subtract from billing
                     int amount = 250;
                     statement.executeQuery("SELECT AmountDue FROM Billings WHERE MemberID=" + memberID + ";");
+                    resultSet = statement.getResultSet();
                     while (resultSet.next()) {
                         amount = resultSet.getInt("AmountDue");
                     }
@@ -548,8 +553,32 @@ public class App
                     System.out.println(e.getMessage());
                 }
             }
+            else if (ret == 3){
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    // prints available classes
+                    statement.executeQuery("SELECT ClassID, ClassType, ClassDescription, StartTime, EndTime FROM Classes NATURAL JOIN Takes WHERE MemberID="
+                            + memberID+" ORDER BY ClassID DESC;");
+                    ResultSet resultSet = statement.getResultSet();
+
+                    System.out.println("Your Classes: ");
+                    System.out.println("Class ID --|-- Class Type --|-- Description --|-- Start Time --|-- End Time");
+                    while (resultSet.next()){
+                        System.out.print(resultSet.getInt("ClassID") + "\t");
+                        System.out.print(resultSet.getString("ClassType") + "\t");
+                        System.out.print(resultSet.getString("ClassDescription") + "\t");
+                        System.out.print(resultSet.getString("StartTime") + "\t");
+                        System.out.println(resultSet.getString("EndTime"));
+                    }
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
         } while (ret != 0);
-    } // TODO: add view classes option, billing not being updated properly
+    }
 
     // _______________TRAINER FUNCTIONS_______________________________
     public static void trainerCredScreen(Scanner input){
@@ -674,8 +703,42 @@ public class App
             }
 
             if (ret == 1) {
-                manageTrainerSchedule(input);
-            } else if (ret == 2){
+                int c;
+                System.out.println("(1) View Schedule");
+                System.out.println("(2) Edit Schedule");
+                System.out.println("(0) EXIT");
+                System.out.println("Enter Your Selection: ");
+                c = input.nextInt();
+                input.nextLine();
+                if (c == 0) break;
+                while (c < 0 || c > 2) {
+                    System.out.println("Selection out of range. Try again: ");
+                    input.nextLine();
+                    c = input.nextInt();
+                }
+                if (c == 1){
+                    try{
+                        Class.forName("org.postgresql.Driver");
+                        connection = DriverManager.getConnection(url, user, password);
+                        Statement statement = connection.createStatement();
+                        statement.executeQuery("SELECT StartTime, EndTime FROM TrainerAvailability WHERE TrainerID=" + trainerID + ";");
+                        ResultSet resultSet = statement.getResultSet();
+                        System.out.println("Schedule:");
+                        System.out.println("Start Time | End Time");
+                        while(resultSet.next()){
+                            System.out.print(resultSet.getString("StartTime") + "\t");
+                            System.out.println(resultSet.getString("EndTime"));
+                        }
+                        connection.close();
+                    }catch (Exception e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+                else if (c==2){
+                    manageTrainerSchedule(input);
+                }
+            }
+            else if (ret == 2){
                 viewMemberProfile(input);
             } else if (ret == 3){
                 viewAllProfiles();
@@ -700,13 +763,14 @@ public class App
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
-    } // TODO: add view schedule option
+    }
     public static void viewAllProfiles(){
         try{
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
             Statement statement = connection.createStatement();
-            statement.executeQuery("SELECT * FROM Members WHERE MemberID IN (SELECT MemberID FROM Takes NATURAL JOIN Classes WHERE TrainerID="+trainerID+");");
+            statement.executeQuery("SELECT * FROM Members WHERE MemberID IN (SELECT MemberID FROM Takes NATURAL JOIN Classes WHERE TrainerID="
+                    +trainerID+") ORDER BY MemberID;");
             ResultSet resultSet = statement.getResultSet();
             System.out.println("Displaying all members taking your courses:");
             while(resultSet.next()){
@@ -974,7 +1038,7 @@ public class App
                     // Prints equipment
                     System.out.println("Equipment:");
                     System.out.println("EquipmentID | Name | Description | Condition");
-                    statement.executeQuery("SELECT EquipmentID, EquipmentName, EquipmentDescription, Condition FROM Equipment ORDER BY EquipmentID");
+                    statement.executeQuery("SELECT EquipmentID, EquipmentName, EquipmentDescription, Condition FROM Equipment ORDER BY EquipmentID;");
                     ResultSet resultSet = statement.getResultSet();
                     while(resultSet.next()){
                         System.out.print(resultSet.getInt("EquipmentID") + "\t");
@@ -1143,7 +1207,7 @@ public class App
 
                     System.out.println("Member Dues:");
                     System.out.println("Member ID | Amount Due");
-                    statement.executeQuery("SELECT * FROM Billings ORDER BY MemberID ASC");
+                    statement.executeQuery("SELECT * FROM Billings ORDER BY MemberID DESC;");
                     ResultSet resultSet = statement.getResultSet();
                     while(resultSet.next()){
                         System.out.print(resultSet.getInt("MemberID") + "\t");
@@ -1156,5 +1220,5 @@ public class App
                 }
             }
         } while (ret != 0);
-    }   //TODO: add checking bounds when creating classes
+    }
 }
