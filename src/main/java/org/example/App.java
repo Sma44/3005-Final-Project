@@ -699,8 +699,8 @@ public class App
         }
     } // EXTRA FUNCTIONALITY
     public static void viewMemberProfile(Scanner input){
-        String first = " ";
-        String last = " ";
+        String first;
+        String last;
         System.out.print("Enter First Name:");
         first = input.nextLine();
         System.out.println();
@@ -785,7 +785,7 @@ public class App
         }
     }
     public static void adminView(Scanner input){
-        String email = " ";
+        String email;
         HashSet<String> adminEmails = new HashSet<>();
 
         try{
