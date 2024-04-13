@@ -140,7 +140,7 @@ public class App
         }
     }
     public static void memberView(Scanner input){
-        String email = " ";
+        String email;
         HashSet<String> memberEmails = new HashSet<>();
 
         try{
@@ -581,7 +581,7 @@ public class App
         }
     }
     public static void trainerView(Scanner input){
-        String email = " ";
+        String email;
         HashSet<String> trainerEmails = new HashSet<>();
 
         try{
