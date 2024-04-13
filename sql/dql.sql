@@ -37,8 +37,8 @@ CREATE TABLE Rooms(
 
 CREATE TABLE Classes(
   ClassID SERIAL PRIMARY KEY,
-  RoomID INTEGER,
-  TrainerID INTEGER,
+  RoomID INTEGER REFERENCES Rooms(RoomID),
+  TrainerID INTEGER REFERENCES Trainers(TrainerID),
   ClassType TEXT,
   ClassDescription TEXT,
   StartTime TIME NOT NULL,
