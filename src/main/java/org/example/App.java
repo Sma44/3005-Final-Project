@@ -7,9 +7,10 @@ import java.sql.Statement;
 import java.util.Scanner;
 import java.util.HashSet;
 
+// TODO: add order by statement to queries
 public class App 
 {
-    static String url = "jdbc:postgresql://localhost:5432/Student";
+    static String url = "jdbc:postgresql://localhost:5432/FitnessApp";
     static String user = "postgres";
     static String password = "admin";
     static Connection connection;
@@ -53,13 +54,13 @@ public class App
             ret = input.nextInt();
             input.nextLine();
             if (ret == 0) break;
-
+            // choice validation
             while (ret < 0 || ret > 3) {
                 System.out.println("Selection out of range. Try again: ");
                 input.nextLine();
                 ret = input.nextInt();
             }
-
+            // calls chosen user view
             if (ret == 1) {
                 memberCredScreen(input);
             } else if (ret == 2) {
@@ -70,7 +71,7 @@ public class App
         } while (ret != 0);
     }
 
-    // _________________MEMBER FUNCTIONS_____________________________
+    // _________________MEMBER USER FUNCTIONS_____________________________
     public static void memberCredScreen(Scanner input){
         int ret;
         do {
@@ -82,13 +83,14 @@ public class App
             ret = input.nextInt();
             input.nextLine();
             if (ret == 0) break;
-
+            // choice validation
             while (ret < 0 || ret > 2) {
                 System.out.println("Selection out of range. Try again: ");
                 input.nextLine();
                 ret = input.nextInt();
             }
 
+            // switches to log in or register pages
             if (ret == 1) {
                 registerMember(input);
             } else if (ret == 2){
@@ -131,7 +133,7 @@ public class App
                 memberID = resultset.getInt("MemberID");
             }
             // creates entry for billing
-            statement.executeUpdate("INSERT INTO Billings(MemberID, AmountDue) VALUES (" + memberID + ", 150);");
+            statement.executeUpdate("INSERT INTO Billings(MemberID, AmountDue) VALUES (" + memberID + ", 250);");
 
             System.out.println("Registration Successful");
             connection.close();
@@ -143,6 +145,7 @@ public class App
         String email;
         HashSet<String> memberEmails = new HashSet<>();
 
+        // adds list of emails in table into hashset for authentication
         try{
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
@@ -157,11 +160,11 @@ public class App
             System.out.println(e.getMessage());
         }
 
+        // login validation
         System.out.print("Enter email or type 'exit' to leave menu:");
         email = input.nextLine();
         System.out.println();
-
-        while (!memberEmails.contains(email) || !(email.equals("exit"))){
+        while (!memberEmails.contains(email)){
             if (email.equals("exit")){
                 return;
             }
@@ -171,6 +174,7 @@ public class App
             System.out.println();
         }
 
+        // gets member ID
         try{
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(url, user, password);
@@ -197,7 +201,7 @@ public class App
             ret = input.nextInt();
             input.nextLine();
             if (ret == 0) break;
-
+            // choice validation
             while (ret < 0 || ret > 4) {
                 System.out.println("Selection out of range. Try again: ");
                 input.nextLine();
@@ -226,7 +230,7 @@ public class App
             ret = input.nextInt();
             input.nextLine();
             if (ret == 0) break;
-
+            // choice validation
             while (ret < 0 || ret > 2) {
                 System.out.println("Selection out of range. Try again: ");
                 input.nextLine();
@@ -252,7 +256,7 @@ public class App
 
                     statement.executeUpdate("UPDATE Members SET Age="+ age +" WHERE MemberID="+memberID+";");
                     statement.executeUpdate("UPDATE Members SET WeightKGs="+ weight +" WHERE MemberID="+memberID+";");
-                    statement.executeUpdate("UPDATE Members SET Height="+ height +" WHERE MemberID="+memberID+";");
+                    statement.executeUpdate("UPDATE Members SET HeightCM="+ height +" WHERE MemberID="+memberID+";");
                     System.out.println("Update successful");
                     connection.close();
                 }catch (Exception e){
@@ -297,7 +301,7 @@ public class App
             System.out.println("Routines: ");
             System.out.println("Description --|-- Duration (Minutes)");
             while(resultSet.next()){
-                System.out.print(resultSet.getInt("RoutineDescription") + "\t");
+                System.out.print(resultSet.getString("RoutineDescription") + "\t");
                 System.out.println(resultSet.getInt("DurationMins"));
             }
 
@@ -305,7 +309,7 @@ public class App
                     + memberID + ";");
             resultSet = statement.getResultSet();
             System.out.println("Health Statistics:");
-            System.out.println("First Name --|-- Last Name --|-- Goal Weight --|-- Goal Deadline --|-- Height --|-- Weight --|-- Age --|-- Sex --|-- BMI");
+            System.out.println("First | Last | Goal | Deadline | Height | Weight | Age | Sex | BMI");
             while(resultSet.next()){
                 System.out.print(resultSet.getString("FName") + "\t");
                 System.out.print(resultSet.getString("LName") + "\t");
@@ -313,17 +317,19 @@ public class App
                 System.out.print(goalWeight + "\t");
                 System.out.print(resultSet.getString("GoalDeadline") + "\t");
                 height = resultSet.getInt("heightCM");
-                System.out.print(height + "\t");
+                System.out.print(height + "\t" + "\t");
                 weight = resultSet.getInt("WeightKGs");
-                System.out.print(weight + "\t");
+                System.out.print(weight + "\t" + "\t" + "\t");
                 System.out.print(resultSet.getInt("Age") + "\t");
                 System.out.print(resultSet.getString("Sex") + "\t");
-                System.out.println(weight / (height * height));
+                System.out.println(weight / ((height/(float)100) * (height/(float)100)));
             }
 
             System.out.println("Fitness Achievements:");
             if (goalWeight == weight){
                 System.out.println("Weight Milestone Reached: " + weight + "KGs");
+            }else{
+                System.out.println("No Achievements");
             }
 
             connection.close();
@@ -337,6 +343,7 @@ public class App
             System.out.print("\n\nSelect option:\n");
             System.out.println("(1) Add Routine");
             System.out.println("(2) Delete Routine");
+            System.out.println("(0) EXIT");
             System.out.println("Enter Your Selection: ");
             ret = input.nextInt();
             input.nextLine();
@@ -352,10 +359,10 @@ public class App
             String description;
             if(ret == 1){
                 System.out.println("Enter Routine Description: ");
+                description = input.nextLine();
+                System.out.println("Enter Routine Duration in Minutes: ");
                 duration = input.nextInt();
                 input.nextLine();
-                System.out.println("Enter Routine Duration in Minutes: ");
-                description = input.nextLine();
 
                 try{
                     Class.forName("org.postgresql.Driver");
@@ -372,6 +379,29 @@ public class App
                 }
             }
             if (ret == 2){
+
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    statement.executeQuery("SELECT * FROM Routines WHERE MemberID="+ memberID + " ORDER BY RoutineID DESC;");
+                    ResultSet resultSet = statement.getResultSet();
+                    System.out.println("Routines:");
+                    System.out.println("Routine ID --|-- Member ID --|-- Description --|-- Duration");
+                    while(resultSet.next()){
+                        System.out.print(resultSet.getInt("RoutineID") + "\t");
+                        System.out.print(resultSet.getInt("MemberID") + "\t");
+                        System.out.print(resultSet.getString("RoutineDescription") + "\t");
+                        System.out.println(resultSet.getInt("DurationMins"));
+                    }
+
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+
+                System.out.println();
                 System.out.println("Enter Routine ID: ");
                 routineID = input.nextInt();
                 input.nextLine();
@@ -457,7 +487,7 @@ public class App
                     while (resultSet.next()) {
                         amount = resultSet.getInt("AmountDue");
                     }
-                    statement.executeUpdate("UPDATE Billings SET AmountDue= "+ (amount + 100) + ";");
+                    statement.executeUpdate("UPDATE Billings SET AmountDue= "+ (amount + 100) + " WHERE MemberID=" + memberID + ";");
 
                     System.out.println("Sign Up Successful");
                     connection.close();
@@ -602,7 +632,7 @@ public class App
         email = input.nextLine();
         System.out.println();
 
-        while (!trainerEmails.contains(email) || !(email.equals("exit"))){
+        while (!trainerEmails.contains(email)){
             if (email.equals("exit")){
                 return;
             }
@@ -802,11 +832,11 @@ public class App
             System.out.println(e.getMessage());
         }
 
-        System.out.print("Enter email or type 'exit' to leave menu:");
+        System.out.println("Enter email or type 'exit' to leave menu:");
         email = input.nextLine();
         System.out.println();
 
-        while (!adminEmails.contains(email) || !(email.equals("exit"))){
+        while (!adminEmails.contains(email)){
             if (email.equals("exit")){
                 return;
             }
@@ -858,7 +888,6 @@ public class App
                 System.out.println("Enter Your Selection: ");
                 c = input.nextInt();
                 input.nextLine();
-                if (c == 0) return;
 
                 if (c == 1){
                     String name;
@@ -882,7 +911,7 @@ public class App
                         Class.forName("org.postgresql.Driver");
                         connection = DriverManager.getConnection(url, user, password);
                         Statement statement = connection.createStatement();
-                        statement.executeUpdate("SELECT * FROM Rooms;");
+                        statement.executeQuery("SELECT * FROM Rooms;");
                         ResultSet resultSet = statement.getResultSet();
                         System.out.println("Rooms:");
                         System.out.println("Room ID --|-- Room Name");
@@ -896,7 +925,7 @@ public class App
                     }
 
                     int id;
-                    System.out.println("Enter Room Name:");
+                    System.out.println("Enter Room ID:");
                     id = input.nextInt();
                     input.nextLine();
 
@@ -905,7 +934,7 @@ public class App
                         connection = DriverManager.getConnection(url, user, password);
                         Statement statement = connection.createStatement();
                         statement.executeUpdate("DELETE FROM Rooms WHERE RoomID="+id+";");
-                        System.out.println("Room Creation Successful");
+                        System.out.println("Room Deletion Successful");
                         connection.close();
                     }catch (Exception e){
                         System.out.println(e.getMessage());
@@ -923,8 +952,9 @@ public class App
                     statement.executeQuery("SELECT EquipmentName, EquipmentDescription, Condition FROM Equipment");
                     ResultSet resultSet = statement.getResultSet();
                     while(resultSet.next()){
-                        System.out.print(resultSet.getInt("MemberID") + "\t");
-                        System.out.println(resultSet.getInt("AmountDue"));
+                        System.out.print(resultSet.getString("EquipmentName") + "\t");
+                        System.out.println(resultSet.getString("EquipmentDescription"));
+                        System.out.println(resultSet.getString("Condition"));
                     }
 
                     int c;
@@ -935,7 +965,6 @@ public class App
                     System.out.println("Enter Your Selection: ");
                     c = input.nextInt();
                     input.nextLine();
-                    if (c == 0) break;
                     while (c < 0 || c > 2) {
                         System.out.println("Selection out of range. Try again: ");
                         input.nextLine();
@@ -980,7 +1009,6 @@ public class App
                 System.out.println("Enter Your Selection: ");
                 c = input.nextInt();
                 input.nextLine();
-                if (c == 0) return;
 
                 if (c==1){
                     int roomId, tID;
@@ -993,7 +1021,7 @@ public class App
                     input.nextLine();
                     System.out.println("Enter class type:");
                     classType = input.nextLine();
-                    System.out.println("Enter room Description:");
+                    System.out.println("Enter class Description:");
                     des = input.nextLine();
                     System.out.println("Enter Start Time (Format: HH:MM):");
                     start = input.nextLine();
@@ -1060,8 +1088,8 @@ public class App
                     Statement statement = connection.createStatement();
 
                     System.out.println("Member Dues:");
-                    System.out.println("Member ID --|-- Amount Due");
-                    statement.executeQuery("SELECT * FROM Billings");
+                    System.out.println("Member ID | Amount Due");
+                    statement.executeQuery("SELECT * FROM Billings ORDER BY MemberID DESC");
                     ResultSet resultSet = statement.getResultSet();
                     while(resultSet.next()){
                         System.out.print(resultSet.getInt("MemberID") + "\t");
