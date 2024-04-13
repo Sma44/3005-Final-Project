@@ -623,14 +623,15 @@ public class App
             statement.executeUpdate("INSERT INTO Trainers (FName, LName, Email) VALUES ('" +
                     fn + "', '" + ln + "', '" + email + "');");
             // gets trainer id
+            System.out.println("Here");
             statement.executeQuery("SELECT TrainerID FROM Trainers WHERE Email='" + email + "';");
             ResultSet resultSet = statement.getResultSet();
             while(resultSet.next()){
                 trainerID = resultSet.getInt("TrainerID");
             }
+            System.out.println("There");
             // creates availability entry in table
-            statement.executeUpdate("INSERT INTO TrainerAvailability (TrainerID,StartTime,EndTime) VALUES (" + trainerID +
-                    ", '00:00', '23:59') WHERE TrainerID="+ trainerID +";");
+            statement.executeUpdate("INSERT INTO TrainerAvailability (TrainerID,StartTime,EndTime) VALUES (" + trainerID + ", '00:00', '23:59');");
 
             System.out.println("Registration Successful");
             connection.close();
