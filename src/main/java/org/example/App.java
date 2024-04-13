@@ -354,7 +354,7 @@ public class App
                 System.out.println("Enter Routine Description: ");
                 duration = input.nextInt();
                 input.nextLine();
-                System.out.println("Enter Routine Duration: ");
+                System.out.println("Enter Routine Duration in Minutes: ");
                 description = input.nextLine();
 
                 try{
@@ -452,7 +452,7 @@ public class App
                     statement.executeUpdate("INSERT INTO Takes (MemberID, ClassID) VALUES (" + memberID + ", " + id + ");");
 
                     // adds to billing
-                    int amount = 150;
+                    int amount = 250;
                     statement.executeQuery("SELECT AmountDue FROM Billings WHERE MemberID=" + memberID + ";");
                     while (resultSet.next()) {
                         amount = resultSet.getInt("AmountDue");
@@ -506,7 +506,7 @@ public class App
                     statement.executeUpdate("DELETE FROM Takes WHERE MemberID=" + memberID + " AND ClassID=" + id + ";");
 
                     // subtract from billing
-                    int amount = 150;
+                    int amount = 250;
                     statement.executeQuery("SELECT AmountDue FROM Billings WHERE MemberID=" + memberID + ";");
                     while (resultSet.next()) {
                         amount = resultSet.getInt("AmountDue");
@@ -562,7 +562,7 @@ public class App
             connection = DriverManager.getConnection(url, user, password);
             Statement statement = connection.createStatement();
             // adds trainer to table
-            statement.executeUpdate("INSERT INTO Trainers(FName, LName, Email) VALUES ('" +
+            statement.executeUpdate("INSERT INTO Trainers (FName, LName, Email) VALUES ('" +
                     fn + "', '" + ln + "', '" + email + "');");
             // gets trainer id
             statement.executeQuery("SELECT TrainerID FROM Trainers WHERE Email='" + email + "';");
@@ -648,7 +648,7 @@ public class App
                 manageTrainerSchedule(input);
             } else if (ret == 2){
                 viewMemberProfile(input);
-            } else {
+            } else if (ret == 3){
                 viewAllProfiles();
             }
         } while (ret != 0);
@@ -760,12 +760,319 @@ public class App
             }
         }
     }
-    //TODO: admin functions
     public static void registerAdmin(Scanner input){
+        String email;
+        System.out.println("Enter email:");
+        email = input.nextLine();
 
+        try{
+            Class.forName("org.postgresql.Driver");
+            connection = DriverManager.getConnection(url, user, password);
+            Statement statement = connection.createStatement();
+            // adds admin to table
+            statement.executeUpdate("INSERT INTO Admins (Email) VALUES ('" + email + "');");
+            // gets admin id
+            statement.executeQuery("SELECT AdminID FROM Admins WHERE Email='" + email + "';");
+            ResultSet resultSet = statement.getResultSet();
+            while(resultSet.next()){
+                adminID = resultSet.getInt("AdminID");
+            }
+
+            System.out.println("Registration Successful");
+            connection.close();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
     public static void adminView(Scanner input){
+        String email = " ";
+        HashSet<String> adminEmails = new HashSet<>();
 
+        try{
+            Class.forName("org.postgresql.Driver");
+            connection = DriverManager.getConnection(url, user, password);
+            Statement statement = connection.createStatement();
+            statement.executeQuery("SELECT Email FROM Admins;");
+            ResultSet resultSet = statement.getResultSet();
+            while(resultSet.next()){
+                adminEmails.add(resultSet.getString("Email"));
+            }
+            connection.close();
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+        System.out.print("Enter email or type 'exit' to leave menu:");
+        email = input.nextLine();
+        System.out.println();
+
+        while (!adminEmails.contains(email) || !(email.equals("exit"))){
+            if (email.equals("exit")){
+                return;
+            }
+            System.out.println("invalid email:");
+            System.out.print("Enter email:");
+            email = input.nextLine();
+            System.out.println();
+        }
+
+        try{
+            Class.forName("org.postgresql.Driver");
+            connection = DriverManager.getConnection(url, user, password);
+            Statement statement = connection.createStatement();
+            statement.executeQuery("SELECT AdminID FROM Admins WHERE Email='" + email + "';");
+            ResultSet resultSet = statement.getResultSet();
+            while(resultSet.next()){
+                adminID = resultSet.getInt("AdminID");
+            }
+            connection.close();
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+        int ret;
+        do {
+            System.out.print("\n\nSelect option:\n");
+            System.out.println("(1) Room Management");
+            System.out.println("(2) Equipment Maintenance Monitoring");
+            System.out.println("(3) Class Schedule Updating");
+            System.out.println("(4) Billing and Payment Processing");
+            System.out.println("(0) EXIT");
+            System.out.println("Enter Your Selection: ");
+            ret = input.nextInt();
+            input.nextLine();
+            if (ret == 0) break;
+
+            while (ret < 0 || ret > 4) {
+                System.out.println("Selection out of range. Try again: ");
+                input.nextLine();
+                ret = input.nextInt();
+            }
+
+            if (ret == 1){
+                int c;
+                System.out.print("\n\nSelect option:\n");
+                System.out.println("(1) Add Room");
+                System.out.println("(2) Remove Room");
+                System.out.println("(0) EXIT");
+                System.out.println("Enter Your Selection: ");
+                c = input.nextInt();
+                input.nextLine();
+                if (c == 0) return;
+
+                if (c == 1){
+                    String name;
+                    System.out.println("Enter Room Name:");
+                    name = input.nextLine();
+
+                    try{
+                        Class.forName("org.postgresql.Driver");
+                        connection = DriverManager.getConnection(url, user, password);
+                        Statement statement = connection.createStatement();
+                        statement.executeUpdate("INSERT INTO Rooms (RoomName) VALUES ('"+name+"');");
+                        System.out.println("Room Creation Successful");
+                        connection.close();
+                    }catch (Exception e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+                else if (c == 2){
+                    // print rooms currently available
+                    try{
+                        Class.forName("org.postgresql.Driver");
+                        connection = DriverManager.getConnection(url, user, password);
+                        Statement statement = connection.createStatement();
+                        statement.executeUpdate("SELECT * FROM Rooms;");
+                        ResultSet resultSet = statement.getResultSet();
+                        System.out.println("Rooms:");
+                        System.out.println("Room ID --|-- Room Name");
+                        while(resultSet.next()){
+                            System.out.print(resultSet.getInt("RoomID")+"\t");
+                            System.out.println(resultSet.getString("RoomName"));
+                        }
+                        connection.close();
+                    }catch (Exception e){
+                        System.out.println(e.getMessage());
+                    }
+
+                    int id;
+                    System.out.println("Enter Room Name:");
+                    id = input.nextInt();
+                    input.nextLine();
+
+                    try{
+                        Class.forName("org.postgresql.Driver");
+                        connection = DriverManager.getConnection(url, user, password);
+                        Statement statement = connection.createStatement();
+                        statement.executeUpdate("DELETE FROM Rooms WHERE RoomID="+id+";");
+                        System.out.println("Room Creation Successful");
+                        connection.close();
+                    }catch (Exception e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+            }
+            else if (ret == 2){
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    System.out.println("Equipment:");
+                    System.out.println("Name --|-- Description --|-- Condition");
+                    statement.executeQuery("SELECT EquipmentName, EquipmentDescription, Condition FROM Equipment");
+                    ResultSet resultSet = statement.getResultSet();
+                    while(resultSet.next()){
+                        System.out.print(resultSet.getInt("MemberID") + "\t");
+                        System.out.println(resultSet.getInt("AmountDue"));
+                    }
+
+                    int c;
+                    System.out.print("\n\nSelect option:\n");
+                    System.out.println("(1) Add Equipment");
+                    System.out.println("(2) Remove Equipment");
+                    System.out.println("(0) EXIT");
+                    System.out.println("Enter Your Selection: ");
+                    c = input.nextInt();
+                    input.nextLine();
+                    if (c == 0) break;
+                    while (c < 0 || c > 2) {
+                        System.out.println("Selection out of range. Try again: ");
+                        input.nextLine();
+                        c = input.nextInt();
+                    }
+
+                    String name,des,cond;
+                    int id;
+                    if (c == 1){
+                        System.out.println("Enter Name:");
+                        name = input.nextLine();
+                        System.out.println("Enter Description:");
+                        des = input.nextLine();
+                        System.out.println("Enter Condition:");
+                        cond = input.nextLine();
+
+                        // add equipment to table
+                        statement.executeUpdate("INSERT INTO Equipment (EquipmentName, EquipmentDescription, Condition) VALUES ('"
+                                + name + "', '" + des + "', '" + cond + "');");
+
+                        System.out.println("Addition Successful");
+                    }else if (c == 2){
+                        System.out.println("Enter Equipment ID:");
+                        id = input.nextInt();
+
+                        // delete equipment from table
+                        statement.executeUpdate("DELETE FROM Equipment WHERE EquipmentID=" + id + ";");
+
+                        System.out.println("Deletion Successful");
+                    }
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
+            else if (ret == 3){
+                int c;
+                System.out.print("\n\nSelect option:\n");
+                System.out.println("(1) Add Class");
+                System.out.println("(2) Remove Class");
+                System.out.println("(0) EXIT");
+                System.out.println("Enter Your Selection: ");
+                c = input.nextInt();
+                input.nextLine();
+                if (c == 0) return;
+
+                if (c==1){
+                    int roomId, tID;
+                    String classType,des,start,end;
+                    System.out.println("Enter room ID:");
+                    roomId = input.nextInt();
+                    input.nextLine();
+                    System.out.println("Enter Trainer ID:");
+                    tID = input.nextInt();
+                    input.nextLine();
+                    System.out.println("Enter class type:");
+                    classType = input.nextLine();
+                    System.out.println("Enter room Description:");
+                    des = input.nextLine();
+                    System.out.println("Enter Start Time (Format: HH:MM):");
+                    start = input.nextLine();
+                    System.out.println("Enter End Time (Format: HH:MM):");
+                    end = input.nextLine();
+
+                    try{
+                        Class.forName("org.postgresql.Driver");
+                        connection = DriverManager.getConnection(url, user, password);
+                        Statement statement = connection.createStatement();
+                        statement.executeUpdate("INSERT INTO Classes (RoomID, TrainerID, ClassType, ClassDescription, StartTime, EndTime, Available) VALUES ("
+                                + roomId + ", " + tID + ", '" + classType + "', '" + des + "', '" + start + "', '" + end + "', True);");
+
+                        System.out.println("Class Added Successfully");
+                        connection.close();
+                    }catch (Exception e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+                else if (c==2){
+                    System.out.println("Classes:");
+                    try{
+                        Class.forName("org.postgresql.Driver");
+                        connection = DriverManager.getConnection(url, user, password);
+                        Statement statement = connection.createStatement();
+                        statement.executeQuery("SELECT * FROM Classes;");
+                        ResultSet resultSet = statement.getResultSet();
+                        while(resultSet.next()){
+                            System.out.print(resultSet.getInt("ClassID") + "\t");
+                            System.out.print(resultSet.getInt("RoomID") + "\t");
+                            System.out.print(resultSet.getInt("TrainerID") + "\t");
+                            System.out.print(resultSet.getString("ClassType") + "\t");
+                            System.out.print(resultSet.getString("StartTime") + "\t");
+                            System.out.print(resultSet.getString("EndTime") + "\t");
+                            System.out.println(resultSet.getString("Available"));
+                        }
+                        connection.close();
+                    }catch (Exception e){
+                        System.out.println(e.getMessage());
+                    }
+
+                    int cId;
+                    System.out.println("Enter Class ID:");
+                    cId = input.nextInt();
+                    input.nextLine();
+
+                    try{
+                        Class.forName("org.postgresql.Driver");
+                        connection = DriverManager.getConnection(url, user, password);
+                        Statement statement = connection.createStatement();
+                        statement.executeUpdate("DELETE FROM Classes WHERE ClassID=" + cId + ";");
+
+                        System.out.println("Class Deleted Successfully");
+                        connection.close();
+                    }catch (Exception e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+            }
+            else if (ret == 4){
+                try{
+                    Class.forName("org.postgresql.Driver");
+                    connection = DriverManager.getConnection(url, user, password);
+                    Statement statement = connection.createStatement();
+
+                    System.out.println("Member Dues:");
+                    System.out.println("Member ID --|-- Amount Due");
+                    statement.executeQuery("SELECT * FROM Billings");
+                    ResultSet resultSet = statement.getResultSet();
+                    while(resultSet.next()){
+                        System.out.print(resultSet.getInt("MemberID") + "\t");
+                        System.out.println(resultSet.getInt("AmountDue"));
+                    }
+                    System.out.println("End of Billings");
+                    connection.close();
+                }catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
+            }
+        } while (ret != 0);
     }
-
 }
