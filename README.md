@@ -6,6 +6,8 @@ This program offers three views:
 
 **Member**, **Trainer**, and **Admin**
 
+The demonstration video can be seen [HERE](https://youtu.be/RgDJRVmAG0w).
+
 ## Dependencies
 This program uses `Apache Maven` dependencies to run. Be sure to check for installation beforehand.
 
