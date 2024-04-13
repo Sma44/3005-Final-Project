@@ -1,0 +1,70 @@
+CREATE TABLE Members (
+  MemberID SERIAL PRIMARY KEY,
+  FName VARCHAR(255) NOT NULL,
+  LName VARCHAR(255) NOT NULL,
+  Email VARCHAR(255) UNIQUE NOT NULL,
+  GoalWeightKGs INTEGER,
+  GoalDeadline DATE,
+  HeightCM INTEGER,
+  WeightKGs INTEGER,
+  Age INTEGER,
+  Sex VARCHAR(255)
+);
+
+CREATE TABLE Trainers (
+  TrainerID SERIAL PRIMARY KEY,
+  Email VARCHAR(255) UNIQUE NOT NULL,
+  FName VARCHAR(255) NOT NULL,
+  LName VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Admins (
+  AdminID SERIAL PRIMARY KEY,
+  Email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE Equipment(
+  EquipmentID SERIAL PRIMARY KEY,
+  EquipmentName VARCHAR(255) NOT NULL,
+  EquipmentDescription TEXT,
+  Condition TEXT 
+);
+
+CREATE TABLE Rooms(
+  RoomID SERIAL PRIMARY KEY,
+  RoomName VARCHAR(255)
+);
+
+CREATE TABLE Classes(
+  ClassID SERIAL PRIMARY KEY,
+  RoomID INTEGER,
+  TrainerID INTEGER,
+  ClassType TEXT,
+  ClassDescription TEXT,
+  StartTime TIME NOT NULL,
+  EndTime TIME NOT NULL,
+  Available BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE Routines(
+  RoutineID SERIAL PRIMARY KEY,
+  MemberID INTEGER NOT NULL REFERENCES Members(MemberID),
+  RoutineDescription TEXT,
+  DurationMins INTEGER DEFAULT 1
+);
+
+CREATE TABLE TrainerAvailability(
+  TrainerID INTEGER REFERENCES Trainers(TrainerID),
+  StartTime TIME NOT NULL,
+  EndTime TIME NOT NULL
+);
+
+CREATE TABLE Billings(
+  MemberID INTEGER REFERENCES Members(MemberID),
+  AmountDue INTEGER DEFAULT 250
+);
+
+CREATE TABLE Takes(
+  MemberID INTEGER REFERENCES Members(MemberID),
+  ClassID INTEGER REFERENCES Classes(ClassID)
+);
